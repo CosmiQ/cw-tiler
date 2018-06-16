@@ -122,8 +122,13 @@ def tile_utm(source, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256, nodata=
 
 
 
-def get_chip(address, ll_x, ll_y, xres, yres, downSampleRate):
-    """ Get Chip From Image
+def get_chip(source, ll_x, ll_y, xres, yres,
+                 utm_EPSG=[],
+                 indexes=None,
+             tile_size_pixels=512,
+                 nodata=None,
+                 alpha=None):
+    """ Get Chip From Image Address"
 
     :param address:
     :param ll_x:
@@ -134,6 +139,38 @@ def get_chip(address, ll_x, ll_y, xres, yres, downSampleRate):
     :return:
 
     """
+
+    if isinstance(source, DatasetReader):
+
+        if not utm_EPSG:
+            wgs_bounds = utils.get_wgs84_bounds(source)
+            utm_EPSG = utils.calculate_UTM_EPSG(wgs_bounds)
+
+        return  tile_utm(source, ll_x, ll_y, ur_x, ur_y,
+                               indexes=indexes,
+                               tilesize=tile_size_pixels,
+                               nodata=nodata,
+                               alpha=alpha,
+                 dst_crs=utm_EPSG)
+
+
+
+    else:
+        with rasterio.open(source) as src:
+
+            wgs_bounds = utils.get_wgs84_bounds(src)
+            utm_EPSG = utils.calculate_UTM_EPSG(wgs_bounds)
+
+            return tile_utm(source, ll_x, ll_y, ur_x, ur_y,
+                     indexes=indexes,
+                     tilesize=tile_size_pixels,
+                     nodata=nodata,
+                     alpha=alpha,
+                     dst_crs=utm_EPSG)
+
+
+
+
 
 def calculate_anchor_points(utm_bounds, stride_size_meters=400):
     min_x = math.floor(utm_bounds[0])
