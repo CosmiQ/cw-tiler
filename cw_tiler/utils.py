@@ -78,7 +78,7 @@ def calculate_UTM_EPSG(coords, epsgStart={"N":"EPSG:326", "S":"EPSG:327"}):
     utm_direction = utm_isNorthern(latitude)
 
 
-    return "{}{}".format(epsgStart[utm_direction], str(utm_zone))
+    return "{}{}".format(epsgStart[utm_direction], str(utm_zone).zfill(2))
 
 def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None, dst_crs='EPSG:3857'):
     """Read data and mask
