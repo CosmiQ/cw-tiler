@@ -8,7 +8,8 @@ from rasterio.enums import Resampling
 from rasterio.io import DatasetReader
 from rasterio.warp import transform_bounds
 from rio_tiler.errors import RioTilerError
-
+from rasterio import windows
+from rasterio import transform
 from shapely.geometry import box
 import statistics
 
@@ -48,14 +49,12 @@ def utm_isNorthern(latitude):
         returns UTM Zone number
     """
 
-    if (latitude < 0.0):
-        return "S"
-    else:
-        return "N"
+    return (latitude > 0.0)
 
 
-def calculate_UTM_EPSG(coords, epsgStart={"N":"EPSG:326", "S":"EPSG:327"}):
-    """Calculate UTM North/South from Latitude
+
+def calculate_UTM_crs(coords):
+    """Calculate UTM Projection String
 
     Attributes:
     ___________
@@ -65,7 +64,7 @@ def calculate_UTM_EPSG(coords, epsgStart={"N":"EPSG:326", "S":"EPSG:327"}):
     Returns:
     _______
     out: str
-        returns UTM Zone EPSG
+        returns pyProj string
     """
     if len(coords) == 2:
         longitude, latitude = coords
@@ -75,10 +74,17 @@ def calculate_UTM_EPSG(coords, epsgStart={"N":"EPSG:326", "S":"EPSG:327"}):
 
     utm_zone = utm_getZone(longitude)
 
-    utm_direction = utm_isNorthern(latitude)
+    utm_isNorthern(latitude)
 
+    if utm_isNorthern(latitude):
+        direction_indicator = "+north"
+    else:
+        direction_indicator = "+south"
 
-    return "{}{}".format(epsgStart[utm_direction], str(utm_zone).zfill(2))
+    utm_crs = "+proj=utm +zone={} {} +ellps=WGS84 +datum=WGS84 +units=m +no_defs".format(utm_zone,
+                                                                                         direction_indicator)
+
+    return utm_crs
 
 def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None, dst_crs='EPSG:3857'):
     """Read data and mask
@@ -112,11 +118,11 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
 
     if isinstance(indexes, int):
         indexes = [indexes]
-
+    (e - w) / tilesize
     out_shape = (len(indexes), tilesize, tilesize)
-
+    print(dst_crs)
     vrt_params = dict(
-        dst_crs=dst_crs,
+        crs=dst_crs,
         resampling=Resampling.bilinear,
         src_nodata=nodata,
         dst_nodata=nodata)
@@ -124,30 +130,36 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
     if isinstance(source, DatasetReader):
         with WarpedVRT(source, **vrt_params) as vrt:
             window = vrt.window(w, s, e, n, precision=21)
+            print(window)
+            #window_transform = windows.transform(window, vrt.transform)
+            window_transform = transform.from_bounds(w,s,e,n, tilesize, tilesize)
             data = vrt.read(window=window,
-                            boundless=True,
                             resampling=Resampling.bilinear,
                             out_shape=out_shape,
-                            indexes=indexes)
+                            indexes=indexes,
+                            boundless=False)
 
             if nodata is not None:
                 mask = np.all(data != nodata, axis=0).astype(np.uint8) * 255
             elif alpha is not None:
                 mask = vrt.read(alpha, window=window,
                                 out_shape=(tilesize, tilesize),
-                                boundless=True,
+                                boundless=False,
                                 resampling=Resampling.bilinear)
             else:
                 mask = vrt.read_masks(1, window=window,
                                       out_shape=(tilesize, tilesize),
-                                      boundless=True,
+                                      boundless=False,
                                       resampling=Resampling.bilinear)
     else:
         with rasterio.open(source) as src:
             with WarpedVRT(src, **vrt_params) as vrt:
                 window = vrt.window(w, s, e, n, precision=21)
+                window_transform = windows.transform(window, vrt.transform)
+                window_transform = transform.from_bounds(w, s, e, n, tilesize, tilesize)
+
                 data = vrt.read(window=window,
-                                boundless=True,
+                                boundless=False,
                                 resampling=Resampling.bilinear,
                                 out_shape=out_shape,
                                 indexes=indexes)
@@ -157,15 +169,15 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
                 elif alpha is not None:
                     mask = vrt.read(alpha, window=window,
                                     out_shape=(tilesize, tilesize),
-                                    boundless=True,
+                                    boundless=False,
                                     resampling=Resampling.bilinear)
                 else:
                     mask = vrt.read_masks(1, window=window,
                                           out_shape=(tilesize, tilesize),
-                                          boundless=True,
+                                          boundless=False,
                                           resampling=Resampling.bilinear)
 
-    return data, mask
+    return data, mask, window_transform
 
 def tile_exists_utm(boundsSrc, boundsTile):
     """"Check if suggested tile is within bounds
