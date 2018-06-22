@@ -19,7 +19,7 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - conda create --yes -n cw-tiler python-$TRAVIS_PYTHON_VERSION pip
+  - conda create --yes -n cw-tiler python=$TRAVIS_PYTHON_VERSION pip
   - source activate cw-tiler
   - conda install -c conda-forge rtree
   - pip install -q -e .[test]
