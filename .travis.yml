@@ -4,7 +4,10 @@ python:
 
 # command to install dependencies
 install:
-  - pip3 install -q -e .[test]
+  - conda create --yes -n cw-tiler python-$TRAVIS_PYTHON_VERSION pip
+  - source activate cw-tiler
+  - conda install -c conda-forge rtree
+  - pip install -q -e .[test]
 # command to run tests
 script:
   - pytest # or py.test for Python versions 3.5 and below
