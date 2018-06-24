@@ -9,8 +9,8 @@ from cw_tiler import utils
 import numpy as np
 
 
-
-def tile_utm_source(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256, nodata=None, alpha=None, dst_crs='epsg:4326'):
+def tile_utm_source(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256, nodata=None, alpha=None,
+                    dst_crs='epsg:4326'):
     """
     Create UTM tile from any images.
 
@@ -56,7 +56,6 @@ def tile_utm_source(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256, nod
                                nodata=nodata,
                                alpha=alpha,
                                dst_crs=dst_crs)
-
 
 
 def tile_utm(source, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256, nodata=None, alpha=None, dst_crs='epsg:4326'):
@@ -120,14 +119,12 @@ def tile_utm(source, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256, nodata=
                                    dst_crs=dst_crs)
 
 
-
-
-def get_chip(source, ll_x, ll_y, xres, yres,
-                 utm_EPSG=[],
-                 indexes=None,
+def get_chip(source, ll_x, ll_y, gsd,
+             utm_crs=[],
+             indexes=None,
              tile_size_pixels=512,
-                 nodata=None,
-                 alpha=None):
+             nodata=None,
+             alpha=None):
     """ Get Chip From Image Address"
 
     :param address:
@@ -135,41 +132,40 @@ def get_chip(source, ll_x, ll_y, xres, yres,
     :param ll_y:
     :param xres:
     :param yres:
-    :param downSampleRate:
+
     :return:
 
     """
 
+    ur_x = ll_x + gsd * tile_size_pixels
+    ur_y = ll_y + gsd * tile_size_pixels
+
     if isinstance(source, DatasetReader):
 
-        if not utm_EPSG:
+        if not utm_crs:
             wgs_bounds = utils.get_wgs84_bounds(source)
-            utm_EPSG = utils.calculate_UTM_EPSG(wgs_bounds)
+            utm_crs = utils.calculate_UTM_crs(wgs_bounds)
 
-        return  tile_utm(source, ll_x, ll_y, ur_x, ur_y,
-                               indexes=indexes,
-                               tilesize=tile_size_pixels,
-                               nodata=nodata,
-                               alpha=alpha,
-                 dst_crs=utm_EPSG)
-
+        return tile_utm(source, ll_x, ll_y, ur_x, ur_y,
+                        indexes=indexes,
+                        tilesize=tile_size_pixels,
+                        nodata=nodata,
+                        alpha=alpha,
+                        dst_crs=utm_crs)
 
 
     else:
         with rasterio.open(source) as src:
 
             wgs_bounds = utils.get_wgs84_bounds(src)
-            utm_EPSG = utils.calculate_UTM_EPSG(wgs_bounds)
+            utm_crs = utils.calculate_UTM_crs(wgs_bounds)
 
             return tile_utm(source, ll_x, ll_y, ur_x, ur_y,
-                     indexes=indexes,
-                     tilesize=tile_size_pixels,
-                     nodata=nodata,
-                     alpha=alpha,
-                     dst_crs=utm_EPSG)
-
-
-
+                            indexes=indexes,
+                            tilesize=tile_size_pixels,
+                            nodata=nodata,
+                            alpha=alpha,
+                            dst_crs=utm_crs)
 
 
 def calculate_anchor_points(utm_bounds, stride_size_meters=400):
@@ -182,7 +178,6 @@ def calculate_anchor_points(utm_bounds, stride_size_meters=400):
     for x in np.arange(min_x, max_x, stride_size_meters):
         for y in np.arange(min_y, max_y, stride_size_meters):
             anchor_point_list.append([x, y])
-
 
     return anchor_point_list
 
@@ -198,9 +193,11 @@ def calculate_cells(anchor_point_list, cell_size_meters):
     """
     cells_list = []
     for anchor_point in anchor_point_list:
-        cells_list.append([anchor_point[0], anchor_point[1], anchor_point[0]+cell_size_meters, anchor_point[1]+cell_size_meters])
+        cells_list.append(
+            [anchor_point[0], anchor_point[1], anchor_point[0] + cell_size_meters, anchor_point[1] + cell_size_meters])
 
     return cells_list
+
 
 def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400):
     anchor_point_list = calculate_anchor_points(utm_bounds, stride_size_meters=stride_size_meters)
@@ -214,32 +211,26 @@ def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters
 
 
 if __name__ == '__main__':
-
     utmX, utmY = 658029, 4006947
-    ll_x = utmX
-    ur_x = utmX + 500
-    ll_y = utmY
-    ur_y = utmY + 500
+    cll_x = utmX
+    cur_x = utmX + 500
+    cll_y = utmY
+    cur_y = utmY + 500
     stride_size_meters = 300
     cell_size_meters = 400
-    tile_size_pixels = 1600
+    ctile_size_pixels = 1600
     spacenetPath = "s3://spacenet-dataset/AOI_2_Vegas/srcData/rasterData/AOI_2_Vegas_MUL-PanSharpen_Cloud.tif"
     address = spacenetPath
 
     with rasterio.open(address) as src:
+        cwgs_bounds = utils.get_wgs84_bounds(src)
+        cutm_crs = utils.calculate_UTM_crs(cwgs_bounds)
+        cutm_bounds = utils.get_utm_bounds(src, cutm_crs)
 
-        wgs_bounds = utils.get_wgs84_bounds(src)
-        utm_EPSG = utils.calculate_UTM_EPSG(wgs_bounds)
-        utm_bounds = utils.get_utm_bounds(src, utm_EPSG)
+        #ccells_list = calculate_analysis_grid(cutm_bounds, stride_size_meters=stride_size_meters,
+        #                                     cell_size_meters=cell_size_meters)
 
-        cells_list = calculate_analysis_grid(utm_bounds, stride_size_meters=stride_size_meters, cell_size_meters=cell_size_meters)
-
-        random_cell = random.choice(cells_list)
-        ll_x, ll_y, ur_x, ur_y = random_cell
-        tile = tile_utm(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=tile_size_pixels, nodata=None, alpha=None,
-                 dst_crs=utm_EPSG)
-
-
-
-
-
+        #random_cell = random.choice(ccells_list)
+        #cll_x, cll_y, cur_x, cur_y = random_cell
+        tile, mask, window_transform = tile_utm(src, cll_x, cll_y, cur_x, cur_y, indexes=None, tilesize=ctile_size_pixels, nodata=None, alpha=None,
+                        dst_crs=cutm_crs)
