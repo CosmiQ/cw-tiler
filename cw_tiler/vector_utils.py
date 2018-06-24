@@ -42,6 +42,9 @@ def search_gdf_polygon(gdf, tile_polygon):
     possible_matches = gdf.iloc[possible_matches_index]
     precise_matches = possible_matches[possible_matches.intersects(tile_polygon)]
 
+    if precise_matches.empty:
+        precise_matches=gpd.GeoDataFrame(geometry=[])
+    
     return precise_matches
 
 def vector_tile_utm(gdf, tile_bounds, min_partial_perc=0.1, geom_type="Polygon", use_sindex=True):
@@ -93,7 +96,7 @@ def clip_gdf(geodf, poly_to_cut, min_partial_perc=0.0, geom_type="Polygon", use_
     else:
         gdf = geodf.copy()
 
-
+    
     if geom_type == "LineString":
 
         if 'origarea' in gdf.columns:
