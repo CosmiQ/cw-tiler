@@ -86,7 +86,8 @@ def calculate_UTM_crs(coords):
 
     return utm_crs
 
-def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None, dst_crs='EPSG:3857'):
+def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None, dst_crs='EPSG:3857', 
+                 verbose=False):
     """Read data and mask
 
     Attributes
@@ -120,7 +121,8 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
         indexes = [indexes]
     (e - w) / tilesize
     out_shape = (len(indexes), tilesize, tilesize)
-    print(dst_crs)
+    if verbose:
+        print(dst_crs)
     vrt_params = dict(
         crs=dst_crs,
         resampling=Resampling.bilinear,
@@ -130,7 +132,8 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
     if isinstance(source, DatasetReader):
         with WarpedVRT(source, **vrt_params) as vrt:
             window = vrt.window(w, s, e, n, precision=21)
-            print(window)
+            if verbose:
+                print(window)
             #window_transform = windows.transform(window, vrt.transform)
             window_transform = transform.from_bounds(w,s,e,n, tilesize, tilesize)
             data = vrt.read(window=window,
