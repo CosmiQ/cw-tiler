@@ -77,7 +77,7 @@ def test_return_tile():
         random_cell = random.choice(cells_list)
         ll_x, ll_y, ur_x, ur_y = random_cell
         print(random_cell)
-        tile, mask, window_transform = main.tile_utm(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=tile_size_pixels, nodata=None, alpha=None,
+        tile, mask, window, window_transform = main.tile_utm(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=tile_size_pixels, nodata=None, alpha=None,
                  dst_crs=utm_crs)
 
         print(np.shape(tile))
