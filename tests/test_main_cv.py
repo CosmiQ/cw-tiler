@@ -159,7 +159,7 @@ def test_return_tile_full():
         src_profile = src.profile
 
 
-        tile, mask, window_transform = main.tile_utm(src, ll_x, ll_y, ur_x, ur_y,
+        tile, mask, window, window_transform = main.tile_utm(src, ll_x, ll_y, ur_x, ur_y,
                                                      indexes=None,
                                                      tilesize=tile_size_pixels,
                                                      nodata=None,
