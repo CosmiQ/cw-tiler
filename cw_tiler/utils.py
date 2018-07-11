@@ -86,6 +86,27 @@ def calculate_UTM_crs(coords):
 
     return utm_crs
 
+def get_utm_vrt(source, crs='EPSG:3857', resampling=Resampling.bilinear, src_nodata=None, dst_nodata=None):
+    
+    vrt_params = dict(
+        crs=crs,
+        resampling=Resampling.bilinear,
+        src_nodata=src_nodata,
+        dst_nodata=dst_nodata)
+    
+    return WarpedVRT(source, **vrt_params)
+        
+def get_utm_vrt_profile(source, crs='EPSG:3857', resampling=Resampling.bilinear, src_nodata=None, dst_nodata=None):
+    
+    with get_utm_vrt(source, crs=crs, resampling=resampling, src_nodata=src_nodata, dst_nodata=dst_nodata) as vrt:
+        
+        vrt_profile = vrt.profile
+        
+    return vrt_profile
+        
+    
+    
+
 def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None, dst_crs='EPSG:3857', 
                  verbose=False):
     """Read data and mask
@@ -180,7 +201,7 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
                                           boundless=False,
                                           resampling=Resampling.bilinear)
 
-    return data, mask, window_transform
+    return data, mask, window, window_transform
 
 def tile_exists_utm(boundsSrc, boundsTile):
     """"Check if suggested tile is within bounds
