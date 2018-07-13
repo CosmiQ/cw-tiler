@@ -185,6 +185,7 @@ def calculate_anchor_points(utm_bounds, stride_size_meters=400, extend=False, qu
 
     anchor_point_list = []
     if quad_space:
+        print("quad_space")
         row_cell = np.asarray([[0, 1],[2,3]])
         anchor_point_list_dict={0: [],
                                1: [],
@@ -200,12 +201,12 @@ def calculate_anchor_points(utm_bounds, stride_size_meters=400, extend=False, qu
             if quad_space:
                 anchor_point_list_dict[row_cell[rowidx % 2, colidx % 2]].append([x,y])
             else:
-                anchor_point_list_dict[1].append([x, y])
+                anchor_point_list_dict[0].append([x, y])
 
     return anchor_point_list_dict
 
 
-def calculate_cells(anchor_point_list, cell_size_meters, utm_bounds=[]):
+def calculate_cells(anchor_point_list_dict, cell_size_meters, utm_bounds=[]):
     """ calculate Cells for splitting based on anchor points
 
     :param anchor_point_list:
@@ -214,28 +215,34 @@ def calculate_cells(anchor_point_list, cell_size_meters, utm_bounds=[]):
     cells_list [(minx, miny, maxx, maxy),
                 ...]
     """
-    cells_list = []
-    for anchor_point in anchor_point_list:
+    cells_list_dict = {}
+    for anchor_point_list_id, anchor_point_list in anchor_point_list_dict.items():
+        cells_list = []
+        for anchor_point in anchor_point_list:
+
+            if utm_bounds:
+                if (anchor_point[0] + cell_size_meters < utm_bounds[2]) or (anchor_point[1] + cell_size_meters < utm_bounds[3]):
+                    cells_list.append(
+                        [anchor_point[0], anchor_point[1], anchor_point[0] + cell_size_meters, anchor_point[1] + cell_size_meters])
+
+
+                else:
+                    pass
         
-        if utm_bounds:
-            if (anchor_point[0] + cell_size_meters < utm_bounds[2]) or (anchor_point[1] + cell_size_meters < utm_bounds[3]):
-                cells_list.append(
-                    [anchor_point[0], anchor_point[1], anchor_point[0] + cell_size_meters, anchor_point[1] + cell_size_meters])
+        cells_list_dict[anchor_point_list_id] = cells_list
+        
+        
 
-                            
-            else:
-                pass
-
-    return cells_list
+    return cells_list_dict
 
 
-def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400, quad_space=True):
+def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400, quad_space=False):
     
-    anchor_point_list = calculate_anchor_points(utm_bounds, stride_size_meters=stride_size_meters)
+    anchor_point_list_dict = calculate_anchor_points(utm_bounds, stride_size_meters=stride_size_meters, quad_space=quad_space)
 
-    cells_list = calculate_cells(anchor_point_list, cell_size_meters, utm_bounds=utm_bounds)
+    cells_list_dict = calculate_cells(anchor_point_list_dict, cell_size_meters, utm_bounds=utm_bounds)
 
-    return cells_list
+    return cells_list_dict
 
 
 
