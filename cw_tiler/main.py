@@ -168,11 +168,20 @@ def get_chip(source, ll_x, ll_y, gsd,
                             dst_crs=utm_crs)
 
 
-def calculate_anchor_points(utm_bounds, stride_size_meters=400):
-    min_x = math.floor(utm_bounds[0])
-    min_y = math.floor(utm_bounds[1])
-    max_x = math.ceil(utm_bounds[2])
-    max_y = math.ceil(utm_bounds[3])
+def calculate_anchor_points(utm_bounds, stride_size_meters=400, extend=False):
+    if extend:
+        min_x = math.floor(utm_bounds[0])
+        min_y = math.floor(utm_bounds[1])
+        max_x = math.ceil(utm_bounds[2])
+        max_y = math.ceil(utm_bounds[3])
+    else:
+        print("NoExtend")
+        print('UTM_Bounds: {}'.format(utm_bounds))
+        min_x = math.ceil(utm_bounds[0])
+        min_y = math.ceil(utm_bounds[1])
+        max_x = math.floor(utm_bounds[2])
+        max_y = math.floor(utm_bounds[3])
+        
 
     anchor_point_list = []
     for x in np.arange(min_x, max_x, stride_size_meters):
@@ -182,7 +191,7 @@ def calculate_anchor_points(utm_bounds, stride_size_meters=400):
     return anchor_point_list
 
 
-def calculate_cells(anchor_point_list, cell_size_meters):
+def calculate_cells(anchor_point_list, cell_size_meters, utm_bounds=[]):
     """ calculate Cells for splitting based on anchor points
 
     :param anchor_point_list:
@@ -193,8 +202,15 @@ def calculate_cells(anchor_point_list, cell_size_meters):
     """
     cells_list = []
     for anchor_point in anchor_point_list:
-        cells_list.append(
-            [anchor_point[0], anchor_point[1], anchor_point[0] + cell_size_meters, anchor_point[1] + cell_size_meters])
+        
+        if utm_bounds:
+            if (anchor_point[0] + cell_size_meters < utm_bounds[2]) or (anchor_point[1] + cell_size_meters < utm_bounds[3]):
+                cells_list.append(
+                    [anchor_point[0], anchor_point[1], anchor_point[0] + cell_size_meters, anchor_point[1] + cell_size_meters])
+
+                            
+            else:
+                pass
 
     return cells_list
 
@@ -202,7 +218,7 @@ def calculate_cells(anchor_point_list, cell_size_meters):
 def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400):
     anchor_point_list = calculate_anchor_points(utm_bounds, stride_size_meters=stride_size_meters)
 
-    cells_list = calculate_cells(anchor_point_list, cell_size_meters)
+    cells_list = calculate_cells(anchor_point_list, cell_size_meters, utm_bounds=utm_bounds)
 
     return cells_list
 

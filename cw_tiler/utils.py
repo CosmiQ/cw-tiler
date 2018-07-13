@@ -108,7 +108,8 @@ def get_utm_vrt_profile(source, crs='EPSG:3857', resampling=Resampling.bilinear,
     
 
 def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None, dst_crs='EPSG:3857', 
-                 verbose=False):
+                 verbose=False,
+                 boundless=False):
     """Read data and mask
 
     Attributes
@@ -157,23 +158,31 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
                 print(window)
             #window_transform = windows.transform(window, vrt.transform)
             window_transform = transform.from_bounds(w,s,e,n, tilesize, tilesize)
+            
             data = vrt.read(window=window,
-                            resampling=Resampling.bilinear,
-                            out_shape=out_shape,
-                            indexes=indexes,
-                            boundless=False)
+                                resampling=Resampling.bilinear,
+                                out_shape=out_shape,
+                                indexes=indexes,
+                                boundless=boundless)
+            if False: #except:
+                print(bounds)
+                print(window)
+                print(out_shape)
+                print(indexes)
+                print(boundless)
+                print(window_transform)
 
             if nodata is not None:
                 mask = np.all(data != nodata, axis=0).astype(np.uint8) * 255
             elif alpha is not None:
                 mask = vrt.read(alpha, window=window,
                                 out_shape=(tilesize, tilesize),
-                                boundless=False,
+                                boundless=boundless,
                                 resampling=Resampling.bilinear)
             else:
                 mask = vrt.read_masks(1, window=window,
                                       out_shape=(tilesize, tilesize),
-                                      boundless=False,
+                                      boundless=boundless,
                                       resampling=Resampling.bilinear)
     else:
         with rasterio.open(source) as src:
@@ -183,7 +192,7 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
                 window_transform = transform.from_bounds(w, s, e, n, tilesize, tilesize)
 
                 data = vrt.read(window=window,
-                                boundless=False,
+                                boundless=boundless,
                                 resampling=Resampling.bilinear,
                                 out_shape=out_shape,
                                 indexes=indexes)
@@ -193,12 +202,12 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
                 elif alpha is not None:
                     mask = vrt.read(alpha, window=window,
                                     out_shape=(tilesize, tilesize),
-                                    boundless=False,
+                                    boundless=boundless,
                                     resampling=Resampling.bilinear)
                 else:
                     mask = vrt.read_masks(1, window=window,
                                           out_shape=(tilesize, tilesize),
-                                          boundless=False,
+                                          boundless=boundless,
                                           resampling=Resampling.bilinear)
 
     return data, mask, window, window_transform
