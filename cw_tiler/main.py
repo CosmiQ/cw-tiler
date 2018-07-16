@@ -221,7 +221,7 @@ def calculate_cells(anchor_point_list_dict, cell_size_meters, utm_bounds=[]):
         for anchor_point in anchor_point_list:
 
             if utm_bounds:
-                if (anchor_point[0] + cell_size_meters < utm_bounds[2]) or (anchor_point[1] + cell_size_meters < utm_bounds[3]):
+                if (anchor_point[0] + cell_size_meters < utm_bounds[2]) and (anchor_point[1] + cell_size_meters < utm_bounds[3]):
                     cells_list.append(
                         [anchor_point[0], anchor_point[1], anchor_point[0] + cell_size_meters, anchor_point[1] + cell_size_meters])
 
