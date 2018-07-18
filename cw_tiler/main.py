@@ -270,5 +270,5 @@ if __name__ == '__main__':
 
         #random_cell = random.choice(ccells_list)
         #cll_x, cll_y, cur_x, cur_y = random_cell
-        tile, mask, window_transform = tile_utm(src, cll_x, cll_y, cur_x, cur_y, indexes=None, tilesize=ctile_size_pixels, nodata=None, alpha=None,
+        tile, mask, window, window_transform = tile_utm(src, cll_x, cll_y, cur_x, cur_y, indexes=None, tilesize=ctile_size_pixels, nodata=None, alpha=None,
                         dst_crs=cutm_crs)
