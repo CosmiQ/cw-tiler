@@ -6,7 +6,7 @@ from shapely.geometry import box
 import geopandas as gpd
 from rasterio import features
 from rasterio import Affine
-
+import numpy as np
 
 
 def read_vector_file(geoFileName):
@@ -142,13 +142,17 @@ def clip_gdf(geodf, poly_to_cut, min_partial_perc=0.0, geom_type="Polygon", use_
 
 
 def rasterize_gdf(gdf, burn_value=1, src_shape=None, src_transform=Affine(1.0, 0.0, 0.0, 0.0, 1.0, 0.0)):
+    
+    if not gdf.empty:
+        img = features.rasterize(
+            ((geom, burn_value) for geom in gdf.geometry),
+            out_shape=src_shape,
+            transform=src_transform,
 
-    img = features.rasterize(
-        ((geom, burn_value) for geom in gdf.geometry),
-        out_shape=src_shape,
-        transform=src_transform,
-
-    )
+        )
+    else:
+        img = np.zeros(src_shape).astype(np.uint8)
+        
 
     return img
 

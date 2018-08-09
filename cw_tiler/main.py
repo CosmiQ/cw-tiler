@@ -168,21 +168,45 @@ def get_chip(source, ll_x, ll_y, gsd,
                             dst_crs=utm_crs)
 
 
-def calculate_anchor_points(utm_bounds, stride_size_meters=400):
-    min_x = math.floor(utm_bounds[0])
-    min_y = math.floor(utm_bounds[1])
-    max_x = math.ceil(utm_bounds[2])
-    max_y = math.ceil(utm_bounds[3])
+def calculate_anchor_points(utm_bounds, stride_size_meters=400, extend=False, quad_space=False):
+    if extend:
+        min_x = math.floor(utm_bounds[0])
+        min_y = math.floor(utm_bounds[1])
+        max_x = math.ceil(utm_bounds[2])
+        max_y = math.ceil(utm_bounds[3])
+    else:
+        print("NoExtend")
+        print('UTM_Bounds: {}'.format(utm_bounds))
+        min_x = math.ceil(utm_bounds[0])
+        min_y = math.ceil(utm_bounds[1])
+        max_x = math.floor(utm_bounds[2])
+        max_y = math.floor(utm_bounds[3])
+        
 
     anchor_point_list = []
-    for x in np.arange(min_x, max_x, stride_size_meters):
-        for y in np.arange(min_y, max_y, stride_size_meters):
-            anchor_point_list.append([x, y])
+    if quad_space:
+        print("quad_space")
+        row_cell = np.asarray([[0, 1],[2,3]])
+        anchor_point_list_dict={0: [],
+                               1: [],
+                               2:[],
+                               3:[]
+                               }
+    else:
+        anchor_point_list_dict={0:[]}
+    
+    for rowidx, x in enumerate(np.arange(min_x, max_x, stride_size_meters)):
+        for colidx, y in enumerate(np.arange(min_y, max_y, stride_size_meters)):
+        
+            if quad_space:
+                anchor_point_list_dict[row_cell[rowidx % 2, colidx % 2]].append([x,y])
+            else:
+                anchor_point_list_dict[0].append([x, y])
 
-    return anchor_point_list
+    return anchor_point_list_dict
 
 
-def calculate_cells(anchor_point_list, cell_size_meters):
+def calculate_cells(anchor_point_list_dict, cell_size_meters, utm_bounds=[]):
     """ calculate Cells for splitting based on anchor points
 
     :param anchor_point_list:
@@ -191,20 +215,34 @@ def calculate_cells(anchor_point_list, cell_size_meters):
     cells_list [(minx, miny, maxx, maxy),
                 ...]
     """
-    cells_list = []
-    for anchor_point in anchor_point_list:
-        cells_list.append(
-            [anchor_point[0], anchor_point[1], anchor_point[0] + cell_size_meters, anchor_point[1] + cell_size_meters])
+    cells_list_dict = {}
+    for anchor_point_list_id, anchor_point_list in anchor_point_list_dict.items():
+        cells_list = []
+        for anchor_point in anchor_point_list:
 
-    return cells_list
+            if utm_bounds:
+                if (anchor_point[0] + cell_size_meters < utm_bounds[2]) and (anchor_point[1] + cell_size_meters < utm_bounds[3]):
+                    cells_list.append(
+                        [anchor_point[0], anchor_point[1], anchor_point[0] + cell_size_meters, anchor_point[1] + cell_size_meters])
 
 
-def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400):
-    anchor_point_list = calculate_anchor_points(utm_bounds, stride_size_meters=stride_size_meters)
+                else:
+                    pass
+        
+        cells_list_dict[anchor_point_list_id] = cells_list
+        
+        
 
-    cells_list = calculate_cells(anchor_point_list, cell_size_meters)
+    return cells_list_dict
 
-    return cells_list
+
+def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400, quad_space=False, snapToGrid=False):
+    
+    anchor_point_list_dict = calculate_anchor_points(utm_bounds, stride_size_meters=stride_size_meters, quad_space=quad_space)
+
+    cells_list_dict = calculate_cells(anchor_point_list_dict, cell_size_meters, utm_bounds=utm_bounds)
+
+    return cells_list_dict
 
 
 
@@ -232,5 +270,5 @@ if __name__ == '__main__':
 
         #random_cell = random.choice(ccells_list)
         #cll_x, cll_y, cur_x, cur_y = random_cell
-        tile, mask, window_transform = tile_utm(src, cll_x, cll_y, cur_x, cur_y, indexes=None, tilesize=ctile_size_pixels, nodata=None, alpha=None,
+        tile, mask, window, window_transform = tile_utm(src, cll_x, cll_y, cur_x, cur_y, indexes=None, tilesize=ctile_size_pixels, nodata=None, alpha=None,
                         dst_crs=cutm_crs)

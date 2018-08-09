@@ -51,13 +51,13 @@ def test_grid_creation():
         utm_EPSG = utils.calculate_UTM_crs(wgs_bounds)
         utm_bounds = utils.get_utm_bounds(src, utm_EPSG)
         print(utm_bounds)
-        cells_list = main.calculate_analysis_grid(utm_bounds, stride_size_meters=stride_size_meters, cell_size_meters=cell_size_meters)
-        print(len(cells_list))
+        cells_list_dict = main.calculate_analysis_grid(utm_bounds, stride_size_meters=stride_size_meters, cell_size_meters=cell_size_meters)
+        print(len(cells_list_dict))
 
-    assert len(cells_list[0]) == 4
-    assert ((cells_list[0][2]-cells_list[0][0]), (cells_list[0][3]-cells_list[0][1])) == (cell_size_meters, cell_size_meters)
-    assert (cells_list[1][1] - cells_list[0][1]) == stride_size_meters
-    assert len(cells_list) == 2592
+    assert len(cells_list_dict[0][0]) == 4
+    assert ((cells_list_dict[0][0][2]-cells_list_dict[0][0][0]), (cells_list_dict[0][0][3]-cells_list_dict[0][0][1])) == (cell_size_meters, cell_size_meters)
+    assert (cells_list_dict[0][1][1] - cells_list_dict[0][0][1]) == stride_size_meters
+    assert len(cells_list_dict[0]) == 2491
 
 
 
@@ -74,10 +74,10 @@ def test_return_tile():
 
         cells_list = main.calculate_analysis_grid(utm_bounds, stride_size_meters=stride_size_meters, cell_size_meters=cell_size_meters)
 
-        random_cell = random.choice(cells_list)
+        random_cell = random.choice(cells_list[0])
         ll_x, ll_y, ur_x, ur_y = random_cell
         print(random_cell)
-        tile, mask, window_transform = main.tile_utm(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=tile_size_pixels, nodata=None, alpha=None,
+        tile, mask, window, window_transform = main.tile_utm(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=tile_size_pixels, nodata=None, alpha=None,
                  dst_crs=utm_crs)
 
         print(np.shape(tile))
@@ -91,7 +91,7 @@ def test_return_vector_gdf():
     gdf = vector_utils.read_vector_file(geojsonPath)
     gdf.head()
     print(utm_crs)
-    gdf = vector_utils.transformToUTM(gdf, utm_crs=utm_crs)
+    gdf_utm = vector_utils.transformToUTM(gdf, utm_crs=utm_crs)
 
     utmX, utmY = 658029, 4006947
     ll_x = utmX
@@ -102,7 +102,7 @@ def test_return_vector_gdf():
     cell_size_meters = 400
     tile_size_pixels = 1600
 
-    small_gdf = vector_utils.vector_tile_utm(gdf, tile_bounds=[ll_x, ll_y, ur_x, ur_y])
+    small_gdf = vector_utils.vector_tile_utm(gdf_utm, tile_bounds=[ll_x, ll_y, ur_x, ur_y])
 
     print(small_gdf.head())
 
@@ -159,7 +159,7 @@ def test_return_tile_full():
         src_profile = src.profile
 
 
-        tile, mask, window_transform = main.tile_utm(src, ll_x, ll_y, ur_x, ur_y,
+        tile, mask, window, window_transform = main.tile_utm(src, ll_x, ll_y, ur_x, ur_y,
                                                      indexes=None,
                                                      tilesize=tile_size_pixels,
                                                      nodata=None,
