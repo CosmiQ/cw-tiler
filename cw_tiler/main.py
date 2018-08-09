@@ -236,7 +236,7 @@ def calculate_cells(anchor_point_list_dict, cell_size_meters, utm_bounds=[]):
     return cells_list_dict
 
 
-def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400, quad_space=False):
+def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400, quad_space=False, snapToGrid=False):
     
     anchor_point_list_dict = calculate_anchor_points(utm_bounds, stride_size_meters=stride_size_meters, quad_space=quad_space)
 
