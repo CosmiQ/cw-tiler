@@ -1,0 +1,78 @@
+{
+    "annotations": [
+        {
+            "area": 1666,
+            "bbox": [
+                489,
+                382,
+                34,
+                49
+            ],
+            "category_id": 1,
+            "id": 1,
+            "ignore": 0,
+            "image_id": 1,
+            "iscrowd": 0,
+            "segmentation": [
+                [
+                    489,
+                    382,
+                    489,
+                    431,
+                    523,
+                    431,
+                    523,
+                    382
+                ]
+            ]
+        },
+        {
+            "area": 1120,
+            "bbox": [
+                391,
+                322,
+                28,
+                40
+            ],
+            "category_id": 1,
+            "id": 2,
+            "ignore": 0,
+            "image_id": 1,
+            "iscrowd": 0,
+            "segmentation": [
+                [
+                    391,
+                    322,
+                    391,
+                    362,
+                    419,
+                    362,
+                    419,
+                    322
+                ]
+            ]
+        }
+    ],
+    "categories": [
+        {
+            "id": 1,
+            "name": "building",
+            "supercategory": "building"
+        }
+    ],
+    "images": [
+        {
+            "file_name": "02480220171101071303.jpg",
+            "height": 576,
+            "id": 1,
+            "width": 704
+        },
+        {
+            "file_name": "02473620171101063102.jpg",
+            "height": 576,
+            "id": 2,
+            "width": 704
+        }
+    ],
+    "type": "instances"
+}

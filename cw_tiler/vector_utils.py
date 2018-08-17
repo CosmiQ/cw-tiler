@@ -4,6 +4,7 @@ from shapely import geometry
 from shapely.geometry import box
 ###
 import geopandas as gpd
+from spacenet_utilties import geoTools
 from rasterio import features
 from rasterio import Affine
 import numpy as np
@@ -155,6 +156,63 @@ def rasterize_gdf(gdf, burn_value=1, src_shape=None, src_transform=Affine(1.0, 0
         
 
     return img
+
+def gdf_to_coco(gdf, image_dict, annotation_list=[]):
+    annodation_dict_base = {}
+    annodation_dict_base.update({'category_id': 1},
+                           {'ignore': 0},
+                           {'iscrowd': 0},
+                            {'image_id': image_dict['id']}
+                           )
+
+    for objid, geom in enumerate(gdf.geometry):
+        tmp_annotation = annodation_dict_base.copy()
+        tmp_annotation.update({'id': objid+1})
+
+        bbox, area = create_bbox(geom)
+        tmp_annotation.update({'bbox': bbox})
+        tmp_annotation.update({'area': area})
+
+        segment = create_segmentation(geom)
+        tmp_annotation.update({'segmentation': segment})
+
+        annotation_list.append(tmp_annotation)
+
+    return annotation_list
+
+
+def create_image_dict(file_name, image_id, src_shape):
+
+    image_dict = {'file_name': file_name,
+                  'id': image_id,
+                  'height': src_shape[1],
+                  'width': src_shape[0]
+                  }
+
+    return image_dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+def create_bbox(geom):
+
+    pass
+
+def create_segmentation(geom):
+
+    pass
+
+
+
 
 
 
