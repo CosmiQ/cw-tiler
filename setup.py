@@ -1,6 +1,3 @@
-
-import os
-
 from setuptools import setup, find_packages
 
 with open('cw_tiler/__init__.py') as f:
@@ -16,14 +13,14 @@ with open('README.rst') as f:
     readme = f.read()
 
 # Runtime requirements.
-inst_reqs = ["rio-tiler", "shapely", "geopandas" ]
+inst_reqs = ["rio-tiler", "shapely", "geopandas"]
 
 extra_reqs = {
     'test': ['mock', 'pytest', 'pytest-cov', 'codecov']}
 
 setup(name='cw_tiler',
       version=version,
-      description=u"""Get UTM tiles for SpaceNet Dataset or arbitrary GeoTIffs""",
+      description=u"""Get UTM tiles for SpaceNet Dataset or arbitrary GeoTiffs""",
       long_description=readme,
       classifiers=[
           'Intended Audience :: Information Technology',

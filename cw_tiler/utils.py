@@ -1,4 +1,4 @@
-"""cv_tiler.utils: utility functions."""
+"""cw_tiler.utils: utility functions."""
 
 
 import numpy as np
@@ -13,8 +13,6 @@ from rasterio import transform
 from shapely.geometry import box
 import statistics
 
-from PIL import Image
-
 # Python 2/3
 try:
     from urllib.request import urlopen
@@ -23,28 +21,30 @@ except ImportError:
 
 
 def utm_getZone(longitude):
-    """Calculate UTM Zone from Longitude
+    """Calculate UTM Zone from Longitude.
 
     Attributes:
-    ___________
+    -----------
     longitude: float of longitude (Degrees.decimal degrees)
 
     Returns:
-    _______
+    -------
     out: int
-        returns UTM Zone number
+        returns UTM Zone number.
     """
+
     return (int(1+(longitude+180.0)/6.0))
+
 
 def utm_isNorthern(latitude):
     """Calculate UTM North/South from Latitude
 
     Attributes:
-    ___________
+    -----------
     latitude: float of latitude (Deg.decimal degrees)
 
     Returns:
-    _______
+    -------
     out: int
         returns UTM Zone number
     """
@@ -52,20 +52,20 @@ def utm_isNorthern(latitude):
     return (latitude > 0.0)
 
 
-
 def calculate_UTM_crs(coords):
     """Calculate UTM Projection String
 
     Attributes:
-    ___________
-    coords: list, [longitude, latitude] or [min_longitude, min_latitude, max_lognitude, max_latitude
-    epsgStart: dict, dictionary for precursor for UTM Zone EPSG (Default is WGS84)
+    -----------
+    coords: list, [longitude, latitude] or [min_longitude, min_latitude,
+                                            max_longitude, max_latitude]
 
     Returns:
-    _______
+    -------
     out: str
         returns pyProj string
     """
+
     if len(coords) == 2:
         longitude, latitude = coords
     elif len(coords) == 4:
@@ -86,56 +86,118 @@ def calculate_UTM_crs(coords):
 
     return utm_crs
 
-def get_utm_vrt(source, crs='EPSG:3857', resampling=Resampling.bilinear, src_nodata=None, dst_nodata=None):
-    
+
+def get_utm_vrt(source, crs='EPSG:3857', resampling=Resampling.bilinear,
+                src_nodata=None, dst_nodata=None):
+    """Get a :py:class:`rasterio.vrt.WarpedVRT` projection of a dataset.
+
+    Attributes:
+    -----------
+    source : rasterio ``dataset`` instance
+        The dataset to virtually warp using :py:class:`rasterio.vrt.WarpedVRT`.
+    crs : :py:class:`rasterio.crs.CRS`, optional
+        Coordinate reference system for the VRT. Defaults to 'EPSG:3857'
+        (Web Mercator).
+    resampling : :py:class:`rasterio.enums.Resampling` method, optional
+        Resampling method to use. Defaults to
+        ``rasterio.enums.Resampling.bilinear``. Alternatives include
+        ``rasterio.enums.Resampling.average``,
+        ``rasterio.enums.Resampling.cubic``, and others. See docs for
+        :py:class:`rasterio.enums.Resampling` for more information.
+    src_nodata : ``int`` or ``float``, optional
+        Source nodata value which will be ignored for interpolation. Defaults
+        to ``None`` (all data used in interpolation).
+    dst_nodata : ``int`` or ``float``, optional
+        Destination nodata value which will be ignored for interpolation.
+        Defaults to ``None``, in which case the value of ``src_nodata`` will be
+        used if provided, or ``0`` otherwise.
+
+    Returns:
+    --------
+    A :py:class:`rasterio.vrt.WarpedVRT` instance with the transformation.
+
+    """
+
     vrt_params = dict(
         crs=crs,
         resampling=Resampling.bilinear,
         src_nodata=src_nodata,
         dst_nodata=dst_nodata)
-    
-    return WarpedVRT(source, **vrt_params)
-        
-def get_utm_vrt_profile(source, crs='EPSG:3857', resampling=Resampling.bilinear, src_nodata=None, dst_nodata=None):
-    
-    with get_utm_vrt(source, crs=crs, resampling=resampling, src_nodata=src_nodata, dst_nodata=dst_nodata) as vrt:
-        
-        vrt_profile = vrt.profile
-        
-    return vrt_profile
-        
-    
-    
 
-def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None, dst_crs='EPSG:3857', 
-                 verbose=False,
-                 boundless=False):
-    """Read data and mask
+    return WarpedVRT(source, **vrt_params)
+
+
+def get_utm_vrt_profile(source, crs='EPSG:3857',
+                        resampling=Resampling.bilinear,
+                        src_nodata=None, dst_nodata=None):
+    """Get a :py:class:`rasterio.profiles.Profile` for projection of a VRT.
+
+    Attributes:
+    -----------
+    source : rasterio ``dataset`` instance
+        The dataset to virtually warp using :py:class:`rasterio.vrt.WarpedVRT`.
+    crs : :py:class:`rasterio.crs.CRS`, optional
+        Coordinate reference system for the VRT. Defaults to 'EPSG:3857'
+        (Web Mercator).
+    resampling : :py:class:`rasterio.enums.Resampling` method, optional
+        Resampling method to use. Defaults to
+        ``rasterio.enums.Resampling.bilinear``. Alternatives include
+        ``rasterio.enums.Resampling.average``,
+        ``rasterio.enums.Resampling.cubic``, and others. See docs for
+        :py:class:`rasterio.enums.Resampling` for more information.
+    src_nodata : ``int`` or ``float``, optional
+        Source nodata value which will be ignored for interpolation. Defaults
+        to ``None`` (all data used in interpolation).
+    dst_nodata : ``int`` or ``float``, optional
+        Destination nodata value which will be ignored for interpolation.
+        Defaults to ``None``, in which case the value of ``src_nodata`` will be
+        used if provided, or ``0`` otherwise.
+
+    Returns:
+    --------
+    A :py:class:`rasterio.profiles.Profile` instance with the transformation
+    applied.
+
+    """
+
+    with get_utm_vrt(source, crs=crs, resampling=resampling,
+                     src_nodata=src_nodata, dst_nodata=dst_nodata) as vrt:
+        vrt_profile = vrt.profile
+
+    return vrt_profile
+
+
+def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None,
+                  alpha=None, dst_crs='EPSG:3857', verbose=False,
+                  boundless=False):
+    """Read data and mask.
 
     Attributes
     ----------
-    source : str or rasterio.io.DatasetReader
-        input file path or rasterio.io.DatasetReader object
-    bounds : tuple, (w, s, e, n) bounds in dst_csrs
+    source : ``str`` or :py:class:`rasterio.io.DatasetReader`
+        input file path or rasterio.io.DatasetReader object.
+    bounds : ``(w, s, e, n)`` tuple
+        bounds in ``dst_crs``.
     tilesize : Output image size
-    indexes : list of ints or a single int, optional, (default: 1)
-        If `indexes` is a list, the result is a 3D array, but is
-        a 2D array if it is a band index number.
-    nodata: int or float, optional (defaults: None)
-    alpha: int, optional (defaults: None)
-        Force alphaband if not present in the dataset metadata
-
-    dst_crs: str, optional (defaults: "EPSG:3857" (Web Mercator)
-        Determine output path
-
+    indexes : ``list`` of ``int``s or ``int``, optional
+        If ``indexes`` is a ``list``, the result is a 3D array, but is
+        a 2D array if it is a band index number. Defaults to ``1``.
+    nodata: int or float, optional
+        nodata value to use in :py:class:`rasterio.vrt.WarpedVRT`.
+        Defaults to ``None`` (use all data in warping).
+    alpha: ``int``, optional
+        Force alphaband if not present in the dataset metadata. Defaults to
+        ``None``.
+    dst_crs: ``str``, optional
+        Destination coordinate reference system. Defaults to "EPSG:3857"
+        (Web Mercator)
 
     Returns
     -------
-    out : array, int
-        returns pixel value.
+    ``np.array`` of ``int``s with pixel values.
+
     """
     w, s, e, n = bounds
-
     if alpha is not None and nodata is not None:
         raise RioTilerError('cannot pass alpha and nodata option')
 
@@ -158,7 +220,7 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
                 print(window)
             #window_transform = windows.transform(window, vrt.transform)
             window_transform = transform.from_bounds(w,s,e,n, tilesize, tilesize)
-            
+
             data = vrt.read(window=window,
                                 resampling=Resampling.bilinear,
                                 out_shape=out_shape,
@@ -213,7 +275,7 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None, alpha=None
     return data, mask, window, window_transform
 
 def tile_exists_utm(boundsSrc, boundsTile):
-    """"Check if suggested tile is within bounds
+    """"Check if suggested tile is within bounds.
 
     'bounds = (w, s, e, n)'
     'box( minx, miny, maxx, maxy)'
@@ -258,6 +320,3 @@ def get_utm_bounds(source, utm_EPSG):
             utm_bounds = transform_bounds(*[src.crs, utm_EPSG] + list(src.bounds), densify_pts=21)
 
     return utm_bounds
-
-
-
