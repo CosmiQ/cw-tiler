@@ -1,7 +1,7 @@
 Authors
 -------
 * David Lindenbaum <dlindenbaum@iqt.org>
-
+* Nicholas Weir <nweir@iqt.org>
 
 
 ### Significant work taking from rio-tiler created by

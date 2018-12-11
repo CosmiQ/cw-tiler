@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'cw-tiler'
-copyright = '2018, David Lindenbaum, Nick Weir'
+copyright = '2018, CosmiQ Works'
 author = 'David Lindenbaum, Nick Weir'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = '0.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -47,6 +47,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx.ext.napoleon'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -82,7 +83,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -186,8 +187,16 @@ epub_exclude_files = ['search.html']
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/', None),
-                       'rasterio': ('https://rasterio.readthedocs.io', None)}
+intersphinx_mapping = {
+    "python": ('https://docs.python.org/', None),
+    "rasterio": ('https://rasterio.readthedocs.io/en/latest/', None),
+    "pandas": ('http://pandas.pydata.org/pandas-docs/stable/', None),
+    "geopandas": ('http://geopandas.org/', None),
+    "rtree": ('http://toblerity.org/rtree/', None),
+    "shapely": ('https://shapely.readthedocs.io/en/stable/', None),
+    "numpy": ('http://docs.scipy.org/doc/numpy/', None)
+    }
+
 
 # -- Options for todo extension ----------------------------------------------
 

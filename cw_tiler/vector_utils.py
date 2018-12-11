@@ -11,8 +11,11 @@ import numpy as np
 def read_vector_file(geoFileName):
     """Read Fiona-Supported Files into GeoPandas GeoDataFrame.
 
-    __note:: This will fail for empty GeoJSON files, which GDAL and Fiona
-    cannot read.
+    Warning
+    ----
+    This will raise an exception for empty GeoJSON files, which GDAL and Fiona
+    cannot read. ``try/except`` the :py:exc:`Fiona.errors.DriverError` or
+    :py:exc:`Fiona._err.CPLE_OpenFailedError` if you must use this.
 
     """
 
@@ -30,16 +33,16 @@ def transformToUTM(gdf, utm_crs, estimate=True, calculate_sindex=True):
         :py:class:`rasterio.crs.CRS` string for destination UTM CRS.
     estimate : bool, optional
         .. deprecated:: 0.2.0
-        This argument is no longer used.
+            This argument is no longer used.
     calculate_sindex : bool, optional
         .. deprecated:: 0.2.0
-        This argument is no longer used.
+            This argument is no longer used.
 
     Returns
     -------
     gdf : :py:class:`geopandas.GeoDataFrame`
         The input :py:class:`geopandas.GeoDataFrame` converted to
-        :param utm_crs: coordinate reference system.
+        `utm_crs` coordinate reference system.
 
     """
 
@@ -48,7 +51,7 @@ def transformToUTM(gdf, utm_crs, estimate=True, calculate_sindex=True):
 
 
 def search_gdf_bounds(gdf, tile_bounds):
-    """Use :param tile_bounds: to subset :param gdf: and return the intersect.
+    """Use `tile_bounds` to subset `gdf` and return the intersect.
 
     Arguments
     ---------
@@ -61,7 +64,7 @@ def search_gdf_bounds(gdf, tile_bounds):
     Returns
     -------
     smallGdf : :py:class:`geopandas.GeoDataFrame`
-        The subset of :param gdf: that overlaps with :tile_bounds:.
+        The subset of `gdf` that overlaps with `tile_bounds` .
 
     """
 
@@ -72,7 +75,7 @@ def search_gdf_bounds(gdf, tile_bounds):
 
 
 def search_gdf_polygon(gdf, tile_polygon):
-    """Find polygons in a GeoDataFrame that overlap with :param tile_polygon:.
+    """Find polygons in a GeoDataFrame that overlap with `tile_polygon` .
 
     Arguments
     ---------
@@ -84,7 +87,7 @@ def search_gdf_polygon(gdf, tile_polygon):
     Returns
     -------
     precise_matches : :py:class:`geopandas.GeoDataFrame`
-        The subset of :param gdf: that overlaps with :param tile_polygon:. If
+        The subset of `gdf` that overlaps with `tile_polygon` . If
         there are no overlaps, this will return an empty
         :py:class:`geopandas.GeoDataFrame`.
 
@@ -103,7 +106,29 @@ def search_gdf_polygon(gdf, tile_polygon):
 
 def vector_tile_utm(gdf, tile_bounds, min_partial_perc=0.1,
                     geom_type="Polygon", use_sindex=True):
+    """Wrapper for :func:`clip_gdf` that converts `tile_bounds` to a polygon.
 
+    Arguments
+    ---------
+    gdf : :class:`geopandas.GeoDataFrame`
+        A :py:class:`geopandas.GeoDataFrame` of polygons to clip.
+    tile_bounds : list-like of floats
+        :obj:`list` of shape ``(W, S, E, N)`` denoting the boundaries of an
+        imagery tile. Converted to a polygon for :func:`clip_gdf`.
+    min_partial_perc : float
+        The minimum fraction of an object in `gdf` that must be
+        preserved. Defaults to 0.0 (include any object if any part remains
+        following clipping).
+    use_sindex : bool, optional
+        Use the `gdf` sindex be used for searching. Improves efficiency
+        but requires `libspatialindex <http://libspatialindex.github.io/>`__ .
+
+    Returns
+    -------
+    small_gdf : :py:class:`geopandas.GeoDataFrame`
+        `gdf` with all contained objects clipped to `tile_bounds`.
+        See notes above for details on additional clipping columns added.
+    """
     tile_polygon = box(*tile_bounds)
     small_gdf = clip_gdf(gdf, tile_polygon,
                          min_partial_perc=min_partial_perc,
@@ -113,7 +138,6 @@ def vector_tile_utm(gdf, tile_bounds, min_partial_perc=0.1,
     return small_gdf
 
 
-
 def getCenterOfGeoFile(gdf, estimate=True):
 
     #TODO implement calculate UTM from gdf  see osmnx implementation
@@ -121,41 +145,49 @@ def getCenterOfGeoFile(gdf, estimate=True):
     pass
 
 
-def clip_gdf(gdf, poly_to_cut, min_partial_perc=0.0, geom_type="Polygon", use_sindex=True):
+def clip_gdf(gdf, poly_to_cut, min_partial_perc=0.0, geom_type="Polygon",
+             use_sindex=True):
     """Clip GDF to a provided polygon.
 
-    Clips objects within :param gdf: to the region defined by
-    :param poly_to_cut:. Also adds several columns to the output:
-    - origarea: The original area of the polygons (only used if
-        :param geom_type: == ``"Polygon"``).
-    - origlen: The original length of the objects (only used if
-        :param geom_type: == ``"LineString"``).
-    - partialDec: The fraction of the object that remains after clipping
-        (fraction of area for Polygons, fraction of length for LineStrings.)
-        Can filter based on this by using :param min_partial_perc:.
-    - truncated: Boolean indicator of whether or not an object was clipped.
+    Note
+    ----
+    Clips objects within `gdf` to the region defined by
+    `poly_to_cut`. Also adds several columns to the output:
+
+    `origarea`
+        The original area of the polygons (only used if `geom_type` ==
+        ``"Polygon"``).
+    `origlen`
+        The original length of the objects (only used if `geom_type` ==
+        ``"LineString"``).
+    `partialDec`
+        The fraction of the object that remains after clipping
+        (fraction of area for Polygons, fraction of length for
+        LineStrings.) Can filter based on this by using `min_partial_perc`.
+    `truncated`
+        Boolean indicator of whether or not an object was clipped.
 
     Arguments
     ---------
     gdf : :py:class:`geopandas.GeoDataFrame`
         A :py:class:`geopandas.GeoDataFrame` of polygons to clip.
     poly_to_cut : :py:class:`shapely.geometry.Polygon`
-        The polygon to clip objects in :param gdf: to.
+        The polygon to clip objects in `gdf` to.
     min_partial_perc : float, optional
-        The minimum fraction of an object in :param gdf: that must be
+        The minimum fraction of an object in `gdf` that must be
         preserved. Defaults to 0.0 (include any object if any part remains
         following clipping).
     geom_type : str, optional
-        Type of objects in :param gdf:. Can be one of
+        Type of objects in `gdf`. Can be one of
         ``["Polygon", "LineString"]`` . Defaults to ``"Polygon"`` .
     use_sindex : bool, optional
-        Use the :param gdf: sindex be used for searching. Improves efficiency
+        Use the `gdf` sindex be used for searching. Improves efficiency
         but requires `libspatialindex <http://libspatialindex.github.io/>`__ .
 
     Returns
     -------
     cutGeoDF : :py:class:`geopandas.GeoDataFrame`
-        :param gdf: with all contained objects clipped to :param poly_to_cut: .
+        `gdf` with all contained objects clipped to `poly_to_cut` .
         See notes above for details on additional clipping columns added.
 
     """
@@ -204,7 +236,7 @@ def rasterize_gdf(gdf, src_shape, burn_value=1,
     """Convert a GeoDataFrame to a binary image (array) mask.
 
     Uses :py:func:`rasterio.features.rasterize` to generate a raster mask from
-    object geometries in :param gdf: .
+    object geometries in `gdf` .
 
     Arguments
     ---------
@@ -213,7 +245,7 @@ def rasterize_gdf(gdf, src_shape, burn_value=1,
     src_shape : list-like of 2 ints
         Shape of the output array in ``(Y, X)`` pixel units.
     burn_value : int in range(0, 255), optional
-        Integer value for pixels corresponding to objects from :param gdf: .
+        Integer value for pixels corresponding to objects from `gdf` .
         Defaults to 1.
     src_transform : :py:class:`affine.Affine`, optional
         Affine transformation for the output raster. If not provided, defaults
@@ -221,10 +253,10 @@ def rasterize_gdf(gdf, src_shape, burn_value=1,
 
     Returns
     -------
-    img : :py:class:`np.ndarray`, dtype ``uint8``
+    img : :class:`np.ndarray`, dtype ``uint8``
         A NumPy array of integers with 0s where no pixels from objects in
-        :param gdf: exist, and :param burn_value: where they do. Shape is
-        defined by :param src_shape:.
+        `gdf` exist, and `burn_value` where they do. Shape is
+        defined by `src_shape`.
     """
     if not gdf.empty:
         img = features.rasterize(

@@ -1,4 +1,4 @@
-"""cw_tiler.utils: utility functions."""
+"""cw_tiler.utils: utility functions for raster files."""
 
 
 import numpy as np
@@ -43,7 +43,7 @@ def utm_isNorthern(latitude):
     Returns
     -------
     out: bool
-        ``True`` if ``latitude`` is in the northern hemisphere, ``False``
+        ``True`` if `latitude` is in the northern hemisphere, ``False``
         otherwise.
 
     """
@@ -57,8 +57,8 @@ def calculate_UTM_crs(coords):
     Arguments
     ---------
     coords: list
-        [longitude, latitude] or [min_longitude, min_latitude,
-                                  max_longitude, max_latitude]
+        ``[longitude, latitude]`` or
+        ``[min_longitude, min_latitude, max_longitude, max_latitude]`` .
 
     Returns
     -------
@@ -110,7 +110,7 @@ def get_utm_vrt(source, crs='EPSG:3857', resampling=Resampling.bilinear,
         to ``None`` (all data used in interpolation).
     dst_nodata : int or float, optional
         Destination nodata value which will be ignored for interpolation.
-        Defaults to ``None``, in which case the value of ``src_nodata`` will be
+        Defaults to ``None``, in which case the value of `src_nodata` will be
         used if provided, or ``0`` otherwise.
 
     Returns
@@ -151,7 +151,7 @@ def get_utm_vrt_profile(source, crs='EPSG:3857',
         to ``None`` (all data used in interpolation).
     dst_nodata : int or float, optional
         Destination nodata value which will be ignored for interpolation.
-        Defaults to ``None``, in which case the value of :param src_nodata:
+        Defaults to ``None``, in which case the value of `src_nodata`
         will be used if provided, or ``0`` otherwise.
 
     Returns
@@ -177,14 +177,14 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None,
     ---------
     source : str or :py:class:`rasterio.io.DatasetReader`
         input file path or :py:class:`rasterio.io.DatasetReader` object.
-    bounds : ``(w, s, e, n)`` tuple
-        bounds in :param dst_crs:.
+    bounds : ``(W, S, E, N)`` tuple
+        bounds in `dst_crs` .
     tilesize : int
         Length of one edge of the output tile in pixels.
     indexes : list of ints or int, optional
         Channel index(es) to output. Returns a 3D :py:class:`np.ndarray` of
-        shape (C, Y, X) if :param indexes: is a list, or a 2D array if :param
-        indexes: is an int channel index. Defaults to ``1``.
+        shape (C, Y, X) if `indexes` is a list, or a 2D array if `indexes` is
+        an int channel index. Defaults to ``1``.
     nodata: int or float, optional
         nodata value to use in :py:class:`rasterio.vrt.WarpedVRT`.
         Defaults to ``None`` (use all data in warping).
@@ -206,13 +206,13 @@ def tile_read_utm(source, bounds, tilesize, indexes=[1], nodata=None,
         channels, ``(Y, X)`` otherwise.
     mask : :py:class:`np.ndarray`
         int mask indicating which pixels contain information and which are
-        :param nodata:. Pixels containing data have value ``255``, :param
-        nodata: pixels have value ``0``.
+        `nodata`. Pixels containing data have value ``255``, `nodata`
+        pixels have value ``0``.
     window : :py:class:`rasterio.windows.Window`
         :py:class:`rasterio.windows.Window` object indicating the raster
-        location of the dataset subregion being returned in :param data:.
+        location of the dataset subregion being returned in `data`.
     window_transform : :py:class:`affine.Affine`
-        Affine transformation for :param window: .
+        Affine transformation for `window` .
 
 
 
@@ -278,7 +278,7 @@ def tile_exists_utm(boundsSrc, boundsTile):
     Returns
     -------
     bool
-        Do the :param boundsSrc: and :param boundsTile: bounding boxes overlap?
+        Do the `boundsSrc` and `boundsTile` bounding boxes overlap?
 
     """
 
@@ -301,7 +301,7 @@ def get_wgs84_bounds(source):
     Returns
     -------
     wgs_bounds : tuple
-        Bounds tuple in wgs84 crs with shape ``(W, S, E, N)``.
+        Bounds tuple for `source` in wgs84 crs with shape ``(W, S, E, N)``.
 
     """
     if isinstance(source, DatasetReader):
@@ -328,7 +328,7 @@ def get_utm_bounds(source, utm_EPSG):
     Returns
     -------
     utm_bounds : tuple
-        Bounding box limits in :param utm_EPSG: crs coordinates with shape
+        Bounding box limits in `utm_EPSG` crs coordinates with shape
         ``(W, S, E, N)``.
 
     """
