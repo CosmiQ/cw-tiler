@@ -24,7 +24,7 @@ copyright = '2018, CosmiQ Works'
 author = 'David Lindenbaum, Nick Weir'
 
 # The short X.Y version
-version = ''
+version = '0.2'
 # The full version, including alpha/beta/rc tags
 release = '0.2.0'
 
