@@ -7,7 +7,6 @@
 <img align="center" src="https://img.shields.io/conda/vn/conda-forge/cw-tiler.svg">
 <img align="center" src="https://readthedocs.org/projects/cw-tiler/badge/" alt="docs">
 <img align="center" src="https://img.shields.io/github/license/cosmiq/cw-tiler.svg" alt="license">
-<img align="center" src="https://img.shields.io/docker/build/cosmiqworks/cw-tiler.svg" alt="docker">
 </p>
 
 - [Installation Instructions](#installation-instructions)
@@ -44,14 +43,6 @@ For bleeding-edge versions (use at your own risk), `pip install` from the dev br
 ```
 pip install --upgrade git+https://github.com/CosmiQ/cw-tiler.git@dev
 ```
-
-#### Docker
-
-You may also use our Docker container:
-```
-docker pull cosmiqworks/cw-tiler
-```
-
 ## API Documentation
 See the [readthedocs](https://cw-tiler.readthedocs.io/) page.
 
