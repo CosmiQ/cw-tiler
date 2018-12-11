@@ -1,13 +1,6 @@
 from setuptools import setup, find_packages
 
-with open('cw_tiler/__init__.py') as f:
-    for line in f:
-        if line.find("__version__") >= 0:
-            version = line.split("=")[1].strip()
-            version = version.strip('"')
-            version = version.strip("'")
-            continue
-
+version = '0.2.0'
 
 with open('README.rst') as f:
     readme = f.read()
@@ -30,8 +23,8 @@ setup(name='cw_tiler',
           'Programming Language :: Python :: 2.7',
           'Topic :: Scientific/Engineering :: GIS'],
       keywords='raster aws tiler gdal rasterio spacenet machinelearning',
-      author=u"David Lindenbaum",
-      author_email='dlindenbaum@iqt.org',
+      author=u"David Lindenbaum and Nick Weir",
+      author_email='dlindenbaum@iqt.org, nweir@iqt.org',
       url='https://github.com/CosmiQ/cw-tiler',
       license='BSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
