@@ -11,7 +11,6 @@ from rio_tiler.errors import RioTilerError
 from rasterio import windows
 from rasterio import transform
 from shapely.geometry import box
-import statistics
 
 
 def utm_getZone(longitude):
@@ -70,8 +69,8 @@ def calculate_UTM_crs(coords):
     if len(coords) == 2:
         longitude, latitude = coords
     elif len(coords) == 4:
-        longitude = statistics.mean([coords[0], coords[2]])
-        latitude = statistics.mean([coords[1], coords[3]])
+        longitude = np.mean([coords[0], coords[2]])
+        latitude = np.mean([coords[1], coords[3]])
 
     utm_zone = utm_getZone(longitude)
 
