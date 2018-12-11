@@ -3,7 +3,12 @@ cw-tiler
 =========
 
 
-Modeled off of capabilites from [rio-tiler]<https://github.com/mapbox/rio-tiler> and designed for use with SpaceNet datasets
+Modeled off of capabilites from [rio-tiler]<https://github.com/mapbox/rio-tiler> and designed for use with SpaceNet datasets.
+
+Documentation
+-------------
+For full documentation, see `ReadTheDocs <https://cw-tiler.readthedocs.io>`__.
+
 
 Dependencies
 -----------
