@@ -1,29 +1,19 @@
-
-import os
-
 from setuptools import setup, find_packages
 
-with open('cw_tiler/__init__.py') as f:
-    for line in f:
-        if line.find("__version__") >= 0:
-            version = line.split("=")[1].strip()
-            version = version.strip('"')
-            version = version.strip("'")
-            continue
+version = '0.2.0'
 
-
-with open('README.rst') as f:
+with open('README.md') as f:
     readme = f.read()
 
 # Runtime requirements.
-inst_reqs = ["rio-tiler", "shapely", "geopandas" ]
+inst_reqs = ["rio-tiler", "shapely", "geopandas"]
 
 extra_reqs = {
     'test': ['mock', 'pytest', 'pytest-cov', 'codecov']}
 
 setup(name='cw_tiler',
       version=version,
-      description=u"""Get UTM tiles for SpaceNet Dataset or arbitrary GeoTIffs""",
+      description=u"""Get UTM tiles for SpaceNet Dataset or arbitrary GeoTiffs""",
       long_description=readme,
       classifiers=[
           'Intended Audience :: Information Technology',
@@ -33,8 +23,8 @@ setup(name='cw_tiler',
           'Programming Language :: Python :: 2.7',
           'Topic :: Scientific/Engineering :: GIS'],
       keywords='raster aws tiler gdal rasterio spacenet machinelearning',
-      author=u"David Lindenbaum",
-      author_email='dlindenbaum@iqt.org',
+      author=u"David Lindenbaum and Nick Weir",
+      author_email='dlindenbaum@iqt.org, nweir@iqt.org',
       url='https://github.com/CosmiQ/cw-tiler',
       license='BSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
