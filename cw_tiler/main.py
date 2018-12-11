@@ -1,42 +1,41 @@
 import rasterio
 from rasterio.warp import transform_bounds
 from rasterio.io import DatasetReader
-import statistics
 import math
-import random
 from rio_tiler.errors import TileOutsideBounds
 from cw_tiler import utils
 import numpy as np
 
 
-def tile_utm_source(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256, nodata=None, alpha=None,
-                    dst_crs='epsg:4326'):
+def tile_utm_source(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256,
+                    nodata=None, alpha=None, dst_crs='epsg:4326'):
     """
     Create UTM tile from any images.
 
-    Attributes
-    ----------
-    source : rasterio.Dataset
+    Arguments
+    ---------
+    source : :py:class:`rasterio.Dataset`
     tile_x : int
         Mercator tile X index.
     tile_y : int
         Mercator tile Y index.
     tile_z : int
         Mercator tile ZOOM level.
-    indexes : tuple, int, optional (default: (1, 2, 3))
-        Bands indexes for the RGB combination.
+    indexes : tuple, int, optional
+        Bands indexes for the RGB combination. Defaults to (1, 2, 3).
     tilesize : int, optional (default: 256)
         Output image size.
-    nodata: int or float, optional
+    nodata : int or float, optional
         Overwrite nodata value for mask creation.
-    alpha: int, optional
+    alpha : int, optional
         Overwrite alpha band index for mask creation.
-
+    dst_crs : str, optional
+        Coordinate reference system for output. Defaults to ``"epsg:4326"``.
 
     Returns
     -------
-    data : numpy ndarray
-    mask: numpy array
+    data : :py:class:`np.ndarray`
+    mask : :py:class:`np.ndarray`
 
     """
 
@@ -47,7 +46,7 @@ def tile_utm_source(src, ll_x, ll_y, ur_x, ur_y, indexes=None, tilesize=256, nod
     tile_bounds = (ll_x, ll_y, ur_x, ur_y)
     if not utils.tile_exists_utm(wgs_bounds, tile_bounds):
         raise TileOutsideBounds(
-            'Tile {}/{}/{}/{} is outside image bounds'.format(ll_x, ll_y, ur_x, ur_y))
+            'Tile {}/{}/{}/{} is outside image bounds'.format(tile_bounds)
 
     return utils.tile_read_utm(src,
                                tile_bounds,
@@ -181,7 +180,7 @@ def calculate_anchor_points(utm_bounds, stride_size_meters=400, extend=False, qu
         min_y = math.ceil(utm_bounds[1])
         max_x = math.floor(utm_bounds[2])
         max_y = math.floor(utm_bounds[3])
-        
+
 
     anchor_point_list = []
     if quad_space:
@@ -194,10 +193,10 @@ def calculate_anchor_points(utm_bounds, stride_size_meters=400, extend=False, qu
                                }
     else:
         anchor_point_list_dict={0:[]}
-    
+
     for rowidx, x in enumerate(np.arange(min_x, max_x, stride_size_meters)):
         for colidx, y in enumerate(np.arange(min_y, max_y, stride_size_meters)):
-        
+
             if quad_space:
                 anchor_point_list_dict[row_cell[rowidx % 2, colidx % 2]].append([x,y])
             else:
@@ -228,16 +227,16 @@ def calculate_cells(anchor_point_list_dict, cell_size_meters, utm_bounds=[]):
 
                 else:
                     pass
-        
+
         cells_list_dict[anchor_point_list_id] = cells_list
-        
-        
+
+
 
     return cells_list_dict
 
 
 def calculate_analysis_grid(utm_bounds, stride_size_meters=300, cell_size_meters=400, quad_space=False, snapToGrid=False):
-    
+
     anchor_point_list_dict = calculate_anchor_points(utm_bounds, stride_size_meters=stride_size_meters, quad_space=quad_space)
 
     cells_list_dict = calculate_cells(anchor_point_list_dict, cell_size_meters, utm_bounds=utm_bounds)
