@@ -19,10 +19,17 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - conda create --yes -n cw-tiler python=$TRAVIS_PYTHON_VERSION pip
+  # switch python version spec in environment.yml to match TRAVIS_PYTHON_VERSION
+  # annoying workaround to `conda env create python=$TRAVIS_PYTHON_VERSION` not working
+  - sed -i -E 's/(python=)(.*)/\1'$TRAVIS_PYTHON_VERSION'/' ./environment.yml
+  - conda env create -n cw-tiler --file=environment.yml
   - source activate cw-tiler
-  - conda install -c conda-forge rtree
-  - pip install -q -e .[test]
+  - python --version
+  - pip install -q -e .
+  - pip install codecov pytest pytest-cov
 # command to run tests
 script:
-  - pytest # or py.test for Python versions 3.5 and below
+  - pytest --cov=./
+
+after_success:
+  - codecov
